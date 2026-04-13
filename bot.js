@@ -50,7 +50,8 @@ const CONFIG = {
 const MINI_CONFIGS = {
     '!mini': {
         name: 'Mini',
-        reward: 5,
+        minReward: 5,
+        maxReward: 24,
         color: 0x5865F2,
         emoji: '👍',
         allowedRole: '1490346306965864608',
@@ -60,7 +61,8 @@ const MINI_CONFIGS = {
     },
     '!plus': {
         name: 'Plus',
-        reward: 10,
+        minReward: 25,
+        maxReward: 99,
         color: 0x57F287,
         emoji: '👍',
         allowedRole: '1490346518325104821',
@@ -70,7 +72,8 @@ const MINI_CONFIGS = {
     },
     '!super': {
         name: 'Super',
-        reward: 25,
+        minReward: 100,
+        maxReward: 499,
         color: 0xFEE75C,
         emoji: '👍',
         allowedRole: '1490346869342077049',
@@ -80,7 +83,8 @@ const MINI_CONFIGS = {
     },
     '!epic': {
         name: 'Epic',
-        reward: 50,
+        minReward: 500,
+        maxReward: 1999,
         color: 0xEB459E,
         emoji: '👍',
         allowedRole: '1490347549758984394',
@@ -90,7 +94,8 @@ const MINI_CONFIGS = {
     },
     '!exclusive': {
         name: 'Exclusive',
-        reward: 100,
+        minReward: 2000,
+        maxReward: 4999,
         color: 0xED4245,
         emoji: '👍',
         allowedRole: '1490347815312953345',
@@ -100,7 +105,8 @@ const MINI_CONFIGS = {
     },
     '!hyper': {
         name: 'Hyper',
-        reward: 250,
+        minReward: 5000,
+        maxReward: 9999,
         color: 0xFF7A00,
         emoji: '👍',
         allowedRole: '1490348053746417777',
@@ -110,7 +116,8 @@ const MINI_CONFIGS = {
     },
     '!quantum': {
         name: 'Quantum',
-        reward: 500,
+        minReward: 10000,
+        maxReward: 99999,
         color: 0x9B59B6,
         emoji: '👍',
         allowedRole: '1490348168507035878',
@@ -204,31 +211,42 @@ client.on('interactionCreate', async (interaction) => {
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
-    if (!Object.keys(MINI_CONFIGS).includes(message.content)) return;
 
-    const cmd = message.content;
-    const miniConfig = MINI_CONFIGS[cmd];
+    const msgCmd = message.content.split(' ')[0];
+    if (!Object.keys(MINI_CONFIGS).includes(msgCmd)) return;
+
+    const miniConfig = MINI_CONFIGS[msgCmd];
 
     if (message.channel.id !== miniConfig.allowedChannel) return;
     if (!message.member.roles.cache.has(miniConfig.allowedRole)) return;
 
     await message.delete().catch(() => {});
 
+    // Parse reward amount from message
+    let reward = miniConfig.minReward;
+    const msgParts = message.content.split(' ');
+    if (msgParts.length > 1) {
+        const customReward = parseInt(msgParts[1]);
+        if (!isNaN(customReward) && customReward >= miniConfig.minReward && customReward <= miniConfig.maxReward) {
+            reward = customReward;
+        }
+    }
+
     const row = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`${cmd.slice(1)}_like_0`)
+                .setCustomId(`${msgCmd.slice(1)}_like_0`)
                 .setEmoji(miniConfig.emoji)
                 .setLabel('0')
                 .setStyle(ButtonStyle.Success),
             new ButtonBuilder()
-                .setCustomId(`${cmd.slice(1)}_dislike_0`)
+                .setCustomId(`${msgCmd.slice(1)}_dislike_0`)
                 .setEmoji('👎')
                 .setLabel('0')
                 .setStyle(ButtonStyle.Danger),
         );
 
-    const content = `<@${message.author.id}> is starting a **${miniConfig.name} Event!** **(${miniConfig.reward} R$)**\n\n` +
+    const content = `<@${message.author.id}> is starting a **${miniConfig.name} Event!** **(${reward} R$)**\n\n` +
                     `<@&${miniConfig.pingRole}>\n\n` +
                     `⭐ Want to **change your pings?** Edit them in --> 📑 **Channels & Roles**`;
 
