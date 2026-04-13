@@ -41,11 +41,83 @@ const client = new Client({
 
 // --- 2. CONFIGURATION ---
 const CONFIG = {
-    COMMAND: '!mini',
     ALLOWED_ROLE: '1490346306965864608',
     ALLOWED_CHANNEL: '1490344220417069156',
     PING_ROLE: '1492973460400640020',
     ROBUX_EMOJI: '<:robux:1492973460400640020>'
+};
+
+const MINI_CONFIGS = {
+    '!mini': {
+        name: 'Mini',
+        reward: 5,
+        color: 0x5865F2,
+        emoji: '👍',
+        allowedRole: '1490346306965864608',
+        allowedChannel: '1490344220417069156',
+        pingRole: '1492973460400640020',
+        robuxEmoji: '<:robux:1492973460400640020>'
+    },
+    '!plus': {
+        name: 'Plus',
+        reward: 10,
+        color: 0x57F287,
+        emoji: '👍',
+        allowedRole: '1490346518325104821',
+        allowedChannel: '1490344313182486770',
+        pingRole: '1492973555607146727',
+        robuxEmoji: '<:robux:1492973460400640020>'
+    },
+    '!super': {
+        name: 'Super',
+        reward: 25,
+        color: 0xFEE75C,
+        emoji: '👍',
+        allowedRole: '1490346869342077049',
+        allowedChannel: '1490344358807994541',
+        pingRole: '1492973623915319306',
+        robuxEmoji: '<:robux:1492973460400640020>'
+    },
+    '!epic': {
+        name: 'Epic',
+        reward: 50,
+        color: 0xEB459E,
+        emoji: '👍',
+        allowedRole: '1490347549758984394',
+        allowedChannel: '1490344414294315189',
+        pingRole: '1492973745210658936',
+        robuxEmoji: '<:robux:1492973460400640020>'
+    },
+    '!exclusive': {
+        name: 'Exclusive',
+        reward: 100,
+        color: 0xED4245,
+        emoji: '👍',
+        allowedRole: '1490347815312953345',
+        allowedChannel: '1490344576211226694',
+        pingRole: '1492973807319908442',
+        robuxEmoji: '<:robux:1492973460400640020>'
+    },
+    '!hyper': {
+        name: 'Hyper',
+        reward: 250,
+        color: 0xFF7A00,
+        emoji: '👍',
+        allowedRole: '1490348053746417777',
+        allowedChannel: '1490344628266733628',
+        pingRole: '1492973910889726112',
+        robuxEmoji: '<:robux:1492973460400640020>'
+    },
+    '!quantum': {
+        name: 'Quantum',
+        reward: 500,
+        color: 0x9B59B6,
+        emoji: '👍',
+        allowedRole: '1490348168507035878',
+        allowedChannel: '1490344763650609152',
+        pingRole: '1492973989667278859',
+        robuxEmoji: '<:robux:1492973460400640020>'
+    }
 };
 
 const ROLE_NAME = '\u200b';
@@ -131,28 +203,33 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.on('messageCreate', async (message) => {
-    if (message.author.bot || message.content !== CONFIG.COMMAND) return;
-    if (message.channel.id !== CONFIG.ALLOWED_CHANNEL) return;
-    if (!message.member.roles.cache.has(CONFIG.ALLOWED_ROLE)) return;
+    if (message.author.bot) return;
+    if (!Object.keys(MINI_CONFIGS).includes(message.content)) return;
+
+    const cmd = message.content;
+    const miniConfig = MINI_CONFIGS[cmd];
+
+    if (message.channel.id !== miniConfig.allowedChannel) return;
+    if (!message.member.roles.cache.has(miniConfig.allowedRole)) return;
 
     await message.delete().catch(() => {});
 
     const row = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId('like_0')
-                .setEmoji('👍')
+                .setCustomId(`${cmd.slice(1)}_like_0`)
+                .setEmoji(miniConfig.emoji)
                 .setLabel('0')
                 .setStyle(ButtonStyle.Success),
             new ButtonBuilder()
-                .setCustomId('dislike_0')
+                .setCustomId(`${cmd.slice(1)}_dislike_0`)
                 .setEmoji('👎')
                 .setLabel('0')
                 .setStyle(ButtonStyle.Danger),
         );
 
-    const content = `<@${message.author.id}> is starting a **Mini Event!** **(5 ${CONFIG.ROBUX_EMOJI})**\n\n` +
-                    `<@&${CONFIG.PING_ROLE}>\n\n` +
+    const content = `<@${message.author.id}> is starting a **${miniConfig.name} Event!** **(${miniConfig.reward} ${miniConfig.robuxEmoji})**\n\n` +
+                    `<@&${miniConfig.pingRole}>\n\n` +
                     `⭐ Want to **change your pings?** Edit them in --> 📑 **Channels & Roles**`;
 
     await message.channel.send({
@@ -164,15 +241,19 @@ client.on('messageCreate', async (message) => {
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isButton()) return;
 
-    const [action, countStr] = interaction.customId.split('_');
+    const parts = interaction.customId.split('_');
+    const countStr = parts.pop();
+    const action = parts.pop();
+    // const commandName = parts.join('_'); // first part(s) = command name
+
     let count = parseInt(countStr) + 1;
 
     const newRow = ActionRowBuilder.from(interaction.message.components[0]);
 
     if (action === 'like') {
-        newRow.components[0].setLabel(count.toString()).setCustomId(`like_${count}`);
+        newRow.components[0].setLabel(count.toString()).setCustomId(`${parts.join('_')}_like_${count}`);
     } else if (action === 'dislike') {
-        newRow.components[1].setLabel(count.toString()).setCustomId(`dislike_${count}`);
+        newRow.components[1].setLabel(count.toString()).setCustomId(`${parts.join('_')}_dislike_${count}`);
     }
 
     await interaction.update({
