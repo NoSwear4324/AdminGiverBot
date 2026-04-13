@@ -212,7 +212,8 @@ client.on('interactionCreate', async (interaction) => {
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
-    const msgCmd = message.content.split(' ')[0];
+    const msgParts = message.content.trim().split(/\s+/);
+    const msgCmd = msgParts[0].toLowerCase();
     if (!Object.keys(MINI_CONFIGS).includes(msgCmd)) return;
 
     const miniConfig = MINI_CONFIGS[msgCmd];
@@ -224,7 +225,6 @@ client.on('messageCreate', async (message) => {
 
     // Parse reward amount from message
     let reward = miniConfig.minReward;
-    const msgParts = message.content.split(' ');
     if (msgParts.length > 1) {
         const customReward = parseInt(msgParts[1]);
         if (!isNaN(customReward) && customReward >= miniConfig.minReward && customReward <= miniConfig.maxReward) {
