@@ -56,7 +56,7 @@ const MINI_CONFIGS = {
         allowedRole: '1490346306965864608',
         allowedChannel: '1490344220417069156',
         pingRole: '1492973460400640020',
-        robuxEmoji: '<:robux:1492973460400640020>'
+        robuxEmoji: '1492973460400640020'
     },
     '!plus': {
         name: 'Plus',
@@ -66,7 +66,7 @@ const MINI_CONFIGS = {
         allowedRole: '1490346518325104821',
         allowedChannel: '1490344313182486770',
         pingRole: '1492973555607146727',
-        robuxEmoji: '<:robux:1492973460400640020>'
+        robuxEmoji: '1492973460400640020'
     },
     '!super': {
         name: 'Super',
@@ -76,7 +76,7 @@ const MINI_CONFIGS = {
         allowedRole: '1490346869342077049',
         allowedChannel: '1490344358807994541',
         pingRole: '1492973623915319306',
-        robuxEmoji: '<:robux:1492973460400640020>'
+        robuxEmoji: '1492973460400640020'
     },
     '!epic': {
         name: 'Epic',
@@ -86,7 +86,7 @@ const MINI_CONFIGS = {
         allowedRole: '1490347549758984394',
         allowedChannel: '1490344414294315189',
         pingRole: '1492973745210658936',
-        robuxEmoji: '<:robux:1492973460400640020>'
+        robuxEmoji: '1492973460400640020'
     },
     '!exclusive': {
         name: 'Exclusive',
@@ -96,7 +96,7 @@ const MINI_CONFIGS = {
         allowedRole: '1490347815312953345',
         allowedChannel: '1490344576211226694',
         pingRole: '1492973807319908442',
-        robuxEmoji: '<:robux:1492973460400640020>'
+        robuxEmoji: '1492973460400640020'
     },
     '!hyper': {
         name: 'Hyper',
@@ -106,7 +106,7 @@ const MINI_CONFIGS = {
         allowedRole: '1490348053746417777',
         allowedChannel: '1490344628266733628',
         pingRole: '1492973910889726112',
-        robuxEmoji: '<:robux:1492973460400640020>'
+        robuxEmoji: '1492973460400640020'
     },
     '!quantum': {
         name: 'Quantum',
@@ -116,7 +116,7 @@ const MINI_CONFIGS = {
         allowedRole: '1490348168507035878',
         allowedChannel: '1490344763650609152',
         pingRole: '1492973989667278859',
-        robuxEmoji: '<:robux:1492973460400640020>'
+        robuxEmoji: '1492973460400640020'
     }
 };
 
@@ -228,7 +228,7 @@ client.on('messageCreate', async (message) => {
                 .setStyle(ButtonStyle.Danger),
         );
 
-    const content = `<@${message.author.id}> is starting a **${miniConfig.name} Event!** **(${miniConfig.reward} ${miniConfig.robuxEmoji})**\n\n` +
+    const content = `<@${message.author.id}> is starting a **${miniConfig.name} Event!** **(${miniConfig.reward} <:robux:${miniConfig.robuxEmoji}>)**\n\n` +
                     `<@&${miniConfig.pingRole}>\n\n` +
                     `⭐ Want to **change your pings?** Edit them in --> 📑 **Channels & Roles**`;
 
