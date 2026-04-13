@@ -227,8 +227,19 @@ client.on('messageCreate', async (message) => {
     let reward = miniConfig.minReward;
     if (msgParts.length > 1) {
         const customReward = parseInt(msgParts[1]);
-        if (!isNaN(customReward) && customReward >= miniConfig.minReward && customReward <= miniConfig.maxReward) {
-            reward = customReward;
+        if (!isNaN(customReward)) {
+            if (customReward < miniConfig.minReward) {
+                reward = miniConfig.minReward;
+            } else if (customReward > miniConfig.maxReward) {
+                const maxReply = await message.channel.send({
+                    content: `<@${message.author.id}> ⚠️ Max for ${miniConfig.name}: **${miniConfig.maxReward} R$**`,
+                    allowedMentions: { users: [message.author.id] }
+                });
+                setTimeout(() => maxReply.delete().catch(() => {}), 5000);
+                reward = miniConfig.maxReward;
+            } else {
+                reward = customReward;
+            }
         }
     }
 
