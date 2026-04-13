@@ -214,6 +214,10 @@ client.on('messageCreate', async (message) => {
 
     await message.delete().catch(() => {});
 
+    const guild = message.guild;
+    const emoji = guild.emojis.cache.get(miniConfig.robuxEmoji);
+    const emojiStr = emoji ? emoji.toString() : '💰';
+
     const row = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
@@ -228,7 +232,7 @@ client.on('messageCreate', async (message) => {
                 .setStyle(ButtonStyle.Danger),
         );
 
-    const content = `<@${message.author.id}> is starting a **${miniConfig.name} Event!** **(${miniConfig.reward} <:robux:${miniConfig.robuxEmoji}>)**\n\n` +
+    const content = `<@${message.author.id}> is starting a **${miniConfig.name} Event!** **(${miniConfig.reward} ${emojiStr})**\n\n` +
                     `<@&${miniConfig.pingRole}>\n\n` +
                     `⭐ Want to **change your pings?** Edit them in --> 📑 **Channels & Roles**`;
 
