@@ -144,7 +144,7 @@ const commands = [
                     { name: 'On', value: 'add' },
                     { name: 'Off', value: 'remove' }
                 ],
-                required: false
+                required: true
             }
         ]
     }
