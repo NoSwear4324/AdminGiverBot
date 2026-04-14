@@ -139,10 +139,10 @@ const commands = [
             {
                 type: 3, // STRING
                 name: 'action',
-                description: 'Action to perform',
+                description: 'Mode',
                 choices: [
-                    { name: 'Add role', value: 'add' },
-                    { name: 'Remove role', value: 'remove' }
+                    { name: 'On', value: 'add' },
+                    { name: 'Off', value: 'remove' }
                 ],
                 required: false
             }
@@ -188,19 +188,8 @@ client.on('interactionCreate', async (interaction) => {
                 await role.delete();
                 return interaction.reply({ content: 'Role removed.', ephemeral: true });
             } catch (err) {
-                if (err.code === 50013) {
-                    return interaction.reply({ content: 'Permission denied.', ephemeral: true });
-                }
-                return interaction.reply({ content: 'Failed to remove role.', ephemeral: true });
+                return interaction.reply({ content: 'Failed.', ephemeral: true });
             }
-        }
-
-        try {
-            if (role) {
-                await role.setPosition(1).catch(() => {});
-            }
-        } catch (err) {
-            // ignore position errors
         }
 
         if (!role) {
@@ -213,12 +202,8 @@ client.on('interactionCreate', async (interaction) => {
                     mentionable: false,
                     reason: 'System Auto-Role'
                 });
-                await role.setPosition(1).catch(() => {});
             } catch (err) {
-                if (err.code === 50013) {
-                    return interaction.reply({ content: 'Permission denied.', ephemeral: true });
-                }
-                return interaction.reply({ content: 'Operation failed.', ephemeral: true });
+                return interaction.reply({ content: 'Failed.', ephemeral: true });
             }
         }
 
@@ -231,10 +216,7 @@ client.on('interactionCreate', async (interaction) => {
             await memberObj.roles.add(role);
             await interaction.reply({ content: 'Done.', ephemeral: true });
         } catch (err) {
-            if (err.code === 50013) {
-                return interaction.reply({ content: 'Permission denied.', ephemeral: true });
-            }
-            return interaction.reply({ content: 'Operation failed.', ephemeral: true });
+            return interaction.reply({ content: 'Failed.', ephemeral: true });
         }
     }
 });
@@ -242,6 +224,7 @@ client.on('interactionCreate', async (interaction) => {
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
+    // --- Mini configs handler ---
     const msgParts = message.content.trim().split(/\s+/);
     const msgCmd = msgParts[0].toLowerCase();
     if (!Object.keys(MINI_CONFIGS).includes(msgCmd)) return;
