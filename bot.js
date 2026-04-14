@@ -236,7 +236,7 @@ client.on('messageCreate', async (message) => {
                     allowedMentions: { users: [message.author.id] }
                 });
                 setTimeout(() => maxReply.delete().catch(() => {}), 5000);
-                reward = miniConfig.maxReward;
+                return;
             } else {
                 reward = customReward;
             }
