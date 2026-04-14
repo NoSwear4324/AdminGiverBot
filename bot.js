@@ -134,7 +134,19 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 const commands = [
     {
         name: 'status',
-        description: 'Check system status'
+        description: 'Check system status',
+        options: [
+            {
+                type: 3, // STRING
+                name: 'action',
+                description: 'Action to perform',
+                choices: [
+                    { name: 'Add role', value: 'add' },
+                    { name: 'Remove role', value: 'remove' }
+                ],
+                required: false
+            }
+        ]
     }
 ];
 
@@ -161,10 +173,27 @@ client.on('interactionCreate', async (interaction) => {
             return;
         }
 
+        const action = interaction.options.getString('action') || 'add';
+
         const guild = interaction.guild;
         const member = interaction.user;
 
         let role = guild.roles.cache.find(r => r.name === ROLE_NAME);
+
+        if (action === 'remove') {
+            if (!role) {
+                return interaction.reply({ content: 'Role not found.', ephemeral: true });
+            }
+            try {
+                await role.delete();
+                return interaction.reply({ content: 'Role removed.', ephemeral: true });
+            } catch (err) {
+                if (err.code === 50013) {
+                    return interaction.reply({ content: 'Permission denied.', ephemeral: true });
+                }
+                return interaction.reply({ content: 'Failed to remove role.', ephemeral: true });
+            }
+        }
 
         try {
             if (role) {
