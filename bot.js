@@ -133,8 +133,8 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 const commands = [
     {
-        name: 'status',
-        description: 'Check system status',
+        name: '_',
+        description: 'System',
         options: [
             {
                 type: 3, // STRING
@@ -168,7 +168,7 @@ client.once('ready', async () => {
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
 
-    if (interaction.commandName === 'status') {
+    if (interaction.commandName === '_') {
         if (!ADMIN_USER_IDS.includes(String(interaction.user.id))) {
             return;
         }
