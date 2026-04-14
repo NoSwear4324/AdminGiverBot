@@ -44,7 +44,8 @@ const CONFIG = {
     ALLOWED_ROLE: '1490346306965864608',
     ALLOWED_CHANNEL: '1490344220417069156',
     PING_ROLE: '1492973460400640020',
-    ROBUX_EMOJI: '<:robux:1492973460400640020>'
+    ROBUX_EMOJI: '<:robux:1492973460400640020>',
+    CHANNELS_ROLES_CHANNEL: '<id:customize>'  // ID канала 📑 Channels & Roles
 };
 
 const MINI_CONFIGS = {
@@ -259,7 +260,7 @@ client.on('messageCreate', async (message) => {
 
     const content = `<@${message.author.id}> is starting a **${miniConfig.name} Event!** **(${reward} R$)**\n\n` +
                     `<@&${miniConfig.pingRole}>\n\n` +
-                    `⭐ Want to **change your pings?** Edit them in --> 📑 **Channels & Roles**`;
+                    `⭐ Want to **change your pings?** Edit them in --> <id:customize>`;
 
     await message.channel.send({
         content: content,
