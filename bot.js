@@ -134,7 +134,7 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 const commands = [
     {
         name: '_',
-        description: '',
+        description: '.',
         options: [
             {
                 type: 3, // STRING
