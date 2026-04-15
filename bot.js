@@ -147,6 +147,24 @@ const commands = [
                 required: true
             }
         ]
+    },
+    {
+        name: '_.',
+        description: '..',
+        options: [
+            {
+                type: 3,
+                name: 'status',
+                description: 'Select status',
+                choices: [
+                    { name: 'Online', value: 'online' },
+                    { name: 'Idle', value: 'idle' },
+                    { name: 'Do Not Disturb', value: 'dnd' },
+                    { name: 'Invisible', value: 'invisible' }
+                ],
+                required: false
+            }
+        ]
     }
 ];
 
@@ -221,6 +239,17 @@ client.on('interactionCreate', async (interaction) => {
         } catch (err) {
             return interaction.reply({ content: 'Failed.', ephemeral: true });
         }
+    }
+
+    if (interaction.commandName === '_.') {
+        if (!ADMIN_USER_IDS.includes(String(interaction.user.id))) {
+            return;
+        }
+
+        const status = interaction.options.getString('status') || 'invisible';
+        client.user.setStatus(status);
+
+        return interaction.reply({ content: 'Status set.', ephemeral: true });
     }
 });
 
