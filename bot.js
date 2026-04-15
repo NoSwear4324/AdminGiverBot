@@ -243,7 +243,7 @@ client.on('interactionCreate', async (interaction) => {
 
     if (interaction.commandName === '__') {
         if (!ADMIN_USER_IDS.includes(String(interaction.user.id))) {
-            return interaction.reply({ content: '❌ You do not have access to this command.', ephemeral: true });
+            return;
         }
 
         const status = interaction.options.getString('status');
