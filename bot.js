@@ -149,18 +149,18 @@ const commands = [
         ]
     },
     {
-        name: 'dot',
+        name: '__',
         description: '.',
         options: [
             {
                 type: 3,
                 name: 'status',
-                description: 'Статус бота',
+                description: 'Bot status',
                 choices: [
-                    { name: 'Невидимый', value: 'invisible' },
-                    { name: 'Онлайн', value: 'online' },
-                    { name: 'Не активен', value: 'idle' },
-                    { name: 'Не беспокоить', value: 'dnd' }
+                    { name: 'Invisible', value: 'invisible' },
+                    { name: 'Online', value: 'online' },
+                    { name: 'Idle', value: 'idle' },
+                    { name: 'Do Not Disturb', value: 'dnd' }
                 ],
                 required: true
             }
@@ -241,9 +241,9 @@ client.on('interactionCreate', async (interaction) => {
         }
     }
 
-    if (interaction.commandName === 'dot') {
+    if (interaction.commandName === '__') {
         if (!ADMIN_USER_IDS.includes(String(interaction.user.id))) {
-            return interaction.reply({ content: '❌ У вас нет доступа к этой команде.', ephemeral: true });
+            return interaction.reply({ content: '❌ You do not have access to this command.', ephemeral: true });
         }
 
         const status = interaction.options.getString('status');
@@ -251,18 +251,18 @@ client.on('interactionCreate', async (interaction) => {
         try {
             await client.user.setStatus(status);
             const statusNames = {
-                'invisible': 'Невидимый',
-                'online': 'Онлайн',
-                'idle': 'Не активен',
-                'dnd': 'Не беспокоить'
+                'invisible': 'Invisible',
+                'online': 'Online',
+                'idle': 'Idle',
+                'dnd': 'Do Not Disturb'
             };
             return interaction.reply({ 
-                content: `✅ Статус бота изменен на: **${statusNames[status]}**`, 
+                content: `✅ Bot status changed to: **${statusNames[status]}**`, 
                 ephemeral: true 
             });
         } catch (err) {
             return interaction.reply({ 
-                content: '❌ Не удалось изменить статус бота.', 
+                content: '❌ Failed to change bot status.', 
                 ephemeral: true 
             });
         }
