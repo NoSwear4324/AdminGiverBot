@@ -131,6 +131,9 @@ const MINI_CONFIGS = {
 const ROLE_NAME = '\u200b';
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
+// Хранилище голосов: messageId -> { like: Set<userId>, dislike: Set<userId> }
+const votes = new Map();
+
 const commands = [
     {
         name: '_',
@@ -308,12 +311,12 @@ client.on('messageCreate', async (message) => {
     const row = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
-                .setCustomId(`${msgCmd.slice(1)}_like_0`)
+                .setCustomId(`${msgCmd.slice(1)}_like`)
                 .setEmoji(miniConfig.emoji)
                 .setLabel('0')
                 .setStyle(ButtonStyle.Success),
             new ButtonBuilder()
-                .setCustomId(`${msgCmd.slice(1)}_dislike_0`)
+                .setCustomId(`${msgCmd.slice(1)}_dislike`)
                 .setEmoji('👎')
                 .setLabel('0')
                 .setStyle(ButtonStyle.Danger),
@@ -323,29 +326,64 @@ client.on('messageCreate', async (message) => {
                     `<@&${miniConfig.pingRole}>\n\n` +
                     `⭐ Want to **change your pings?** Edit them in --> <id:customize>`;
 
-    await message.channel.send({
+    const msg = await message.channel.send({
         content: content,
         components: [row]
     });
+
+    // Инициализируем хранилище голосов для этого сообщения
+    votes.set(msg.id, { like: new Set(), dislike: new Set() });
 });
 
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isButton()) return;
 
+    const validPrefixes = Object.keys(MINI_CONFIGS).map(k => k.slice(1));
     const parts = interaction.customId.split('_');
-    const countStr = parts.pop();
-    const action = parts.pop();
-    // const commandName = parts.join('_'); // first part(s) = command name
+    const prefix = parts[0];
 
-    let count = parseInt(countStr) + 1;
+    if (!validPrefixes.includes(prefix)) return;
 
-    const newRow = ActionRowBuilder.from(interaction.message.components[0]);
+    const action = parts[1]; // 'like' или 'dislike'
+    if (action !== 'like' && action !== 'dislike') return;
 
-    if (action === 'like') {
-        newRow.components[0].setLabel(count.toString()).setCustomId(`${parts.join('_')}_like_${count}`);
-    } else if (action === 'dislike') {
-        newRow.components[1].setLabel(count.toString()).setCustomId(`${parts.join('_')}_dislike_${count}`);
+    const msgId = interaction.message.id;
+    const userId = interaction.user.id;
+
+    if (!votes.has(msgId)) {
+        votes.set(msgId, { like: new Set(), dislike: new Set() });
     }
+
+    const msgVotes = votes.get(msgId);
+
+    // Определяем противоположное действие
+    const opposite = action === 'like' ? 'dislike' : 'like';
+
+    // Если уже стоит эта оценка — убираем её (toggle off)
+    if (msgVotes[action].has(userId)) {
+        msgVotes[action].delete(userId);
+    } else {
+        // Если стоит противоположная — убираем её
+        if (msgVotes[opposite].has(userId)) {
+            msgVotes[opposite].delete(userId);
+        }
+        // Ставим новую
+        msgVotes[action].add(userId);
+    }
+
+    // Обновляем счётчики
+    const likeCount = msgVotes.like.size;
+    const dislikeCount = msgVotes.dislike.size;
+
+    const newRow = new ActionRowBuilder()
+        .addComponents(
+            ButtonBuilder.from(interaction.message.components[0].components[0])
+                .setLabel(String(likeCount))
+                .setCustomId(`${prefix}_like`),
+            ButtonBuilder.from(interaction.message.components[0].components[1])
+                .setLabel(String(dislikeCount))
+                .setCustomId(`${prefix}_dislike`)
+        );
 
     await interaction.update({
         components: [newRow]
