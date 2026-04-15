@@ -153,7 +153,10 @@ const commands = [
 // --- 3. СОБЫТИЯ ---
 client.once('ready', async () => {
     console.log(`✅ Бот запущен как ${client.user.tag}!`);
-    
+
+    // Устанавливаем статус "невидимый"
+    client.user.setStatus('invisible');
+
     try {
         await rest.put(
             Routes.applicationCommands(client.user.id),
