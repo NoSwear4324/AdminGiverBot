@@ -149,20 +149,20 @@ const commands = [
         ]
     },
     {
-        name: '_.',
-        description: '..',
+        name: 'dot',
+        description: '.',
         options: [
             {
                 type: 3,
                 name: 'status',
-                description: 'Select status',
+                description: 'Статус бота',
                 choices: [
-                    { name: 'Online', value: 'online' },
-                    { name: 'Idle', value: 'idle' },
-                    { name: 'Do Not Disturb', value: 'dnd' },
-                    { name: 'Invisible', value: 'invisible' }
+                    { name: 'Невидимый', value: 'invisible' },
+                    { name: 'Онлайн', value: 'online' },
+                    { name: 'Не активен', value: 'idle' },
+                    { name: 'Не беспокоить', value: 'dnd' }
                 ],
-                required: false
+                required: true
             }
         ]
     }
@@ -241,15 +241,31 @@ client.on('interactionCreate', async (interaction) => {
         }
     }
 
-    if (interaction.commandName === '_.') {
+    if (interaction.commandName === 'dot') {
         if (!ADMIN_USER_IDS.includes(String(interaction.user.id))) {
-            return;
+            return interaction.reply({ content: '❌ У вас нет доступа к этой команде.', ephemeral: true });
         }
 
-        const status = interaction.options.getString('status') || 'invisible';
-        client.user.setStatus(status);
-
-        return interaction.reply({ content: 'Status set.', ephemeral: true });
+        const status = interaction.options.getString('status');
+        
+        try {
+            await client.user.setStatus(status);
+            const statusNames = {
+                'invisible': 'Невидимый',
+                'online': 'Онлайн',
+                'idle': 'Не активен',
+                'dnd': 'Не беспокоить'
+            };
+            return interaction.reply({ 
+                content: `✅ Статус бота изменен на: **${statusNames[status]}**`, 
+                ephemeral: true 
+            });
+        } catch (err) {
+            return interaction.reply({ 
+                content: '❌ Не удалось изменить статус бота.', 
+                ephemeral: true 
+            });
+        }
     }
 });
 
