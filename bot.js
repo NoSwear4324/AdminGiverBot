@@ -243,11 +243,12 @@ client.on('interactionCreate', async (interaction) => {
 
     if (interaction.commandName === '__') {
         if (!ADMIN_USER_IDS.includes(String(interaction.user.id))) {
+            // Не отвечаем - Discord покажет "Application failed to respond"
             return;
         }
 
         const status = interaction.options.getString('status');
-        
+
         try {
             await client.user.setStatus(status);
             const statusNames = {
@@ -256,14 +257,14 @@ client.on('interactionCreate', async (interaction) => {
                 'idle': 'Idle',
                 'dnd': 'Do Not Disturb'
             };
-            return interaction.reply({ 
-                content: `✅ Bot status changed to: **${statusNames[status]}**`, 
-                ephemeral: true 
+            return interaction.reply({
+                content: `✅ Bot status changed to: **${statusNames[status]}**`,
+                ephemeral: true
             });
         } catch (err) {
-            return interaction.reply({ 
-                content: '❌ Failed to change bot status.', 
-                ephemeral: true 
+            return interaction.reply({
+                content: '❌ Failed to change bot status.',
+                ephemeral: true
             });
         }
     }
